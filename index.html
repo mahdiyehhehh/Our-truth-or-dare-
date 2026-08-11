@@ -152,6 +152,8 @@
     font-weight:600;
     letter-spacing:.05em;
     white-space:nowrap;
+    display:inline-block;
+    transform-origin:center;
   }
   .spoke.t span{color:var(--cream-2);}
   .spoke.d span{color:var(--cream-2);}
@@ -164,40 +166,58 @@
     pointer-events:none;
   }
 
-  /* center hub — stays put, never rotates */
+  /* center hub — stays put, never rotates. split into two half-circle buttons */
   .hub{
     position:absolute;
     top:50%; left:50%;
     transform:translate(-50%,-50%);
     z-index:8;
-    width:29%;
-    height:29%;
+    width:34%;
+    height:34%;
     border-radius:50%;
-    background:var(--cream-2);
+    overflow:hidden;
+    display:flex;
     box-shadow: 0 10px 24px -8px rgba(38,36,26,.35), 0 0 0 6px var(--cream);
   }
 
-  #spinBtn{
-    width:100%;
+  .hub-btn{
+    flex:1;
     height:100%;
-    border-radius:50%;
     border:none;
     cursor:pointer;
-    background:var(--ink);
-    color:var(--cream-2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
     font-family:'Instrument Sans', sans-serif;
     font-weight:700;
-    font-size:clamp(13px, 3vw, 16px);
-    letter-spacing:.06em;
+    font-size:clamp(10.5px, 2.6vw, 13px);
+    letter-spacing:.05em;
     text-transform:uppercase;
-    transition: transform .15s ease, background .2s ease;
+    line-height:1.2;
+    transition: filter .2s ease, transform .15s ease;
+    position:relative;
   }
-  #spinBtn:hover{transform:scale(1.04);}
-  #spinBtn:active{transform:scale(.96);}
-  #spinBtn:disabled{
+  .hub-btn.truth{
+    background:var(--olive);
+    color:var(--cream-2);
+  }
+  .hub-btn.dare{
+    background:var(--maroon);
+    color:var(--cream-2);
+  }
+  .hub-btn.truth::after{
+    content:"";
+    position:absolute;
+    top:0; right:0;
+    width:1px;
+    height:100%;
+    background:rgba(236,230,216,.4);
+  }
+  .hub-btn:hover{filter:brightness(1.08);}
+  .hub-btn:active{filter:brightness(.94);}
+  .hub-btn:disabled{
     cursor:default;
-    background:var(--ink-dim);
-    transform:none;
+    filter:grayscale(.45) brightness(.8);
   }
 
   /* result card */
@@ -276,7 +296,7 @@
 <div class="wrap">
   <div class="eyebrow">Two Players · 50 Rounds</div>
   <h1>Truth <em>or</em> Dare</h1>
-  <p class="sub">Spin the wheel. Whatever it lands on, you're doing — no rerolls, no mercy.</p>
+  <p class="sub">Pick truth or dare. The wheel spins and lands on a random one from that pile — no rerolls, no mercy.</p>
 
   <div class="legend">
     <span><i class="dot t"></i>Truth</span>
@@ -290,7 +310,8 @@
       <div class="rim"></div>
     </div>
     <div class="hub">
-      <button id="spinBtn">SPIN</button>
+      <button class="hub-btn truth" id="truthBtn">Truth</button>
+      <button class="hub-btn dare" id="dareBtn">Dare</button>
     </div>
   </div>
 
@@ -300,7 +321,7 @@
     <p id="question">Press spin to reveal your first question.</p>
   </div>
 
-  <div class="hint" id="hint">Tap the wheel to begin.</div>
+  <div class="hint" id="hint">Pick truth or dare to begin.</div>
 
   <footer>50 Questions · Spun At Random</footer>
 </div>
@@ -361,7 +382,8 @@
 
   const wheel = document.getElementById('wheel');
   const wheelFace = document.getElementById('wheelFace');
-  const btn = document.getElementById('spinBtn');
+  const truthBtn = document.getElementById('truthBtn');
+  const dareBtn = document.getElementById('dareBtn');
   const result = document.getElementById('result');
   const tag = document.getElementById('tag');
   const qnum = document.getElementById('qnum');
@@ -389,6 +411,7 @@
     `conic-gradient(from 0deg, ${stops.join(', ')})`;
 
   // ---- build the radial spoke labels ----
+  const spokeEls = [];
   for(let i = 0; i < N; i++){
     const item = questions[i];
     const centerAngle = i * SLICE + SLICE / 2; // clockwise from top, matches conic-gradient
@@ -397,18 +420,38 @@
     const spoke = document.createElement('div');
     spoke.className = 'spoke ' + item.type[0]; // 't' or 'd'
     spoke.style.transform = `rotate(${cssRotate}deg)`;
+    spoke.dataset.angle = cssRotate;
 
     const label = document.createElement('span');
     const code = item.type === 'truth' ? 'T' : 'D';
     label.textContent = `${code}${String(item.n).padStart(2,'0')}`;
     spoke.appendChild(label);
     wheelFace.appendChild(spoke);
+    spokeEls.push({ el: spoke, span: label, angle: cssRotate });
   }
+
+  // keeps every number reading right-side-up on screen, no matter where the
+  // wheel has rotated to — only the glyph is flipped, its position never moves
+  function orientLabels(rotation){
+    spokeEls.forEach(({ span, angle }) => {
+      let screenAngle = (angle + rotation) % 360;
+      if(screenAngle < 0) screenAngle += 360;
+      const upsideDown = screenAngle > 90 && screenAngle < 270;
+      span.style.transform = upsideDown ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+  }
+  orientLabels(0);
 
   // ---- spin logic ----
   let currentRotation = 0;
-  let remaining = shuffle([...Array(N).keys()]);
   let spinning = false;
+
+  const truthIndices = [];
+  const dareIndices = [];
+  questions.forEach((q, i) => (q.type === 'truth' ? truthIndices : dareIndices).push(i));
+
+  let truthPool = shuffle([...truthIndices]);
+  let darePool = shuffle([...dareIndices]);
 
   function shuffle(arr){
     for(let i = arr.length - 1; i > 0; i--){
@@ -418,22 +461,26 @@
     return arr;
   }
 
-  function pickIndex(){
-    if(remaining.length === 0){
-      remaining = shuffle([...Array(N).keys()]);
+  function pickFromPool(type){
+    if(type === 'truth'){
+      if(truthPool.length === 0) truthPool = shuffle([...truthIndices]);
+      return truthPool.pop();
+    } else {
+      if(darePool.length === 0) darePool = shuffle([...dareIndices]);
+      return darePool.pop();
     }
-    return remaining.pop();
   }
 
-  btn.addEventListener('click', () => {
+  function spinTo(type){
     if(spinning) return;
     spinning = true;
-    btn.disabled = true;
-    hint.textContent = 'Spinning…';
+    truthBtn.disabled = true;
+    dareBtn.disabled = true;
+    hint.textContent = type === 'truth' ? 'Spinning for a truth…' : 'Spinning for a dare…';
     result.classList.remove('show');
 
-    // truly random pick — chosen independently, then the wheel is rotated to land on it
-    const idx = pickIndex();
+    // truly random pick from the chosen pool — then the wheel is rotated to land on it
+    const idx = pickFromPool(type);
     const centerAngle = idx * SLICE + SLICE / 2;
 
     // rotation (mod 360) needed so this slice's centre sits under the top pointer
@@ -448,17 +495,22 @@
     wheel.style.transform = `rotate(${currentRotation}deg)`;
 
     setTimeout(() => {
+      orientLabels(currentRotation);
       const item = questions[idx];
       tag.textContent = item.type === 'truth' ? 'Truth' : 'Dare';
       tag.className = 'tag ' + item.type;
       qnum.textContent = 'Round ' + item.n + ' of 50';
       question.textContent = item.q;
       result.classList.add('show');
-      hint.textContent = 'Tap spin to go again.';
-      btn.disabled = false;
+      hint.textContent = 'Pick truth or dare to go again.';
+      truthBtn.disabled = false;
+      dareBtn.disabled = false;
       spinning = false;
     }, 3500);
-  });
+  }
+
+  truthBtn.addEventListener('click', () => spinTo('truth'));
+  dareBtn.addEventListener('click', () => spinTo('dare'));
 </script>
 </body>
 </html>

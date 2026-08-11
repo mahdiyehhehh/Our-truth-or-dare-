@@ -6,19 +6,21 @@
 <title>Spin It — Truth or Dare</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#f2ecdf;
-    --ink-dim:#c9c0ad;
-    --night:#141022;
-    --night-2:#1c1730;
-    --card:#231c3a;
-    --truth:#63c9b5;
-    --truth-glow:rgba(99,201,181,.35);
-    --dare:#ff6f5e;
-    --dare-glow:rgba(255,111,94,.35);
-    --gold:#e8b84f;
+    /* palette lifted from the Botanica brand board */
+    --cream:#ECE6D8;
+    --cream-2:#F6F2E8;
+    --ink:#26241A;
+    --ink-dim:#8B8770;
+    --olive:#68702F;
+    --olive-2:#9AA35A;
+    --rose:#C97D93;
+    --rose-2:#E7B4C0;
+    --maroon:#7C2A3B;
+    --gold:#B4893F;
+    --line: rgba(38,36,26,.10);
   }
 
   *{box-sizing:border-box;}
@@ -27,12 +29,9 @@
     margin:0;
     padding:0;
     min-height:100vh;
-    background:
-      radial-gradient(circle at 18% 10%, rgba(99,201,181,.10), transparent 45%),
-      radial-gradient(circle at 85% 85%, rgba(255,111,94,.10), transparent 45%),
-      var(--night);
+    background:var(--cream);
     color:var(--ink);
-    font-family:'Space Grotesk', sans-serif;
+    font-family:'Instrument Sans', sans-serif;
     overflow-x:hidden;
   }
 
@@ -42,67 +41,66 @@
     flex-direction:column;
     align-items:center;
     justify-content:flex-start;
-    padding:48px 20px 60px;
+    padding:52px 20px 60px;
     position:relative;
   }
 
   /* header */
   .eyebrow{
-    font-size:12px;
-    letter-spacing:.32em;
+    font-size:11px;
+    letter-spacing:.3em;
     text-transform:uppercase;
-    color:var(--gold);
+    color:var(--maroon);
     font-weight:600;
-    margin-bottom:14px;
+    margin-bottom:16px;
   }
   h1{
     font-family:'Fraunces', serif;
-    font-weight:700;
-    font-size:clamp(34px, 6vw, 56px);
-    line-height:1.02;
-    margin:0 0 10px;
+    font-weight:600;
+    font-size:clamp(36px, 6vw, 58px);
+    line-height:1.0;
+    margin:0 0 12px;
     text-align:center;
     letter-spacing:-.01em;
+    color:var(--ink);
   }
   h1 em{
     font-style:italic;
-    background:linear-gradient(95deg, var(--truth), var(--dare));
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
+    color:var(--maroon);
   }
   .sub{
     color:var(--ink-dim);
     font-size:15px;
     text-align:center;
     max-width:420px;
-    margin:0 0 44px;
+    margin:0 0 40px;
     line-height:1.55;
   }
   .legend{
     display:flex;
-    gap:22px;
-    margin-bottom:6px;
+    gap:24px;
+    margin-bottom:8px;
   }
   .legend span{
     display:inline-flex;
     align-items:center;
     gap:7px;
-    font-size:12px;
-    letter-spacing:.08em;
+    font-size:11px;
+    letter-spacing:.1em;
     text-transform:uppercase;
     color:var(--ink-dim);
+    font-weight:600;
   }
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-  .dot.t{background:var(--truth);}
-  .dot.d{background:var(--dare);}
+  .dot.t{background:var(--olive);}
+  .dot.d{background:var(--maroon);}
 
   /* wheel */
   .stage{
     position:relative;
-    width:min(340px, 78vw);
-    height:min(340px, 78vw);
-    margin:38px 0 34px;
+    width:min(380px, 88vw);
+    height:min(380px, 88vw);
+    margin:40px 0 36px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -110,108 +108,106 @@
 
   .pointer{
     position:absolute;
-    top:-14px;
+    top:-4px;
     left:50%;
     transform:translateX(-50%);
-    width:0;
-    height:0;
-    border-left:12px solid transparent;
-    border-right:12px solid transparent;
-    border-top:20px solid var(--gold);
-    filter:drop-shadow(0 2px 6px rgba(232,184,79,.5));
-    z-index:5;
+    width:26px;
+    height:26px;
+    background:var(--ink);
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    z-index:6;
   }
 
-  .ring-outer{
+  .wheel{
     position:absolute;
     inset:0;
     border-radius:50%;
-    padding:10px;
-    background:conic-gradient(
-      var(--truth) 0deg 25.2deg, var(--dare) 25.2deg 50.4deg,
-      var(--truth) 50.4deg 75.6deg, var(--dare) 75.6deg 100.8deg,
-      var(--truth) 100.8deg 126deg, var(--dare) 126deg 151.2deg,
-      var(--truth) 151.2deg 176.4deg, var(--dare) 176.4deg 201.6deg,
-      var(--truth) 201.6deg 226.8deg, var(--dare) 226.8deg 252deg,
-      var(--truth) 252deg 277.2deg, var(--dare) 277.2deg 302.4deg,
-      var(--truth) 302.4deg 327.6deg, var(--dare) 327.6deg 352.8deg,
-      var(--truth) 352.8deg 360deg
-    );
-    box-shadow: 0 0 0 1px rgba(255,255,255,.05), 0 30px 60px -20px rgba(0,0,0,.6);
-    transition: transform 3.2s cubic-bezier(.15,.65,.15,1);
+    box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 40px 70px -30px rgba(38,36,26,.45);
+    transition: transform 3.4s cubic-bezier(.12,.66,.1,1);
     will-change: transform;
   }
-  .ring-outer::before{
-    content:"";
+
+  .wheel-face{
     position:absolute;
-    inset:10px;
+    inset:0;
     border-radius:50%;
-    background:var(--night-2);
-  }
-  .ring-outer.spinning{
-    animation:none;
+    overflow:hidden;
   }
 
-  .hub{
-    position:relative;
-    z-index:3;
-    width:62%;
-    height:62%;
-    border-radius:50%;
-    background:linear-gradient(160deg, #2a2245, #1a1530);
-    border:1px solid rgba(255,255,255,.08);
+  .spoke{
+    position:absolute;
+    top:50%;
+    left:50%;
+    height:14px;
+    width:47%;
+    transform-origin:0% 50%;
     display:flex;
     align-items:center;
-    justify-content:center;
-    box-shadow: inset 0 2px 10px rgba(255,255,255,.06), inset 0 -12px 24px rgba(0,0,0,.5);
+    justify-content:flex-end;
+    padding-right:14px;
+    pointer-events:none;
+  }
+  .spoke span{
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:.05em;
+    white-space:nowrap;
+  }
+  .spoke.t span{color:var(--cream-2);}
+  .spoke.d span{color:var(--cream-2);}
+
+  .rim{
+    position:absolute;
+    inset:-2px;
+    border-radius:50%;
+    border:2px solid var(--cream);
+    pointer-events:none;
+  }
+
+  /* center hub — stays put, never rotates */
+  .hub{
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    z-index:8;
+    width:29%;
+    height:29%;
+    border-radius:50%;
+    background:var(--cream-2);
+    box-shadow: 0 10px 24px -8px rgba(38,36,26,.35), 0 0 0 6px var(--cream);
   }
 
   #spinBtn{
-    width:82%;
-    height:82%;
+    width:100%;
+    height:100%;
     border-radius:50%;
     border:none;
     cursor:pointer;
-    background:radial-gradient(circle at 35% 30%, #ffd98a, var(--gold) 55%, #b8862c 100%);
-    color:#241a06;
-    font-family:'Fraunces', serif;
+    background:var(--ink);
+    color:var(--cream-2);
+    font-family:'Instrument Sans', sans-serif;
     font-weight:700;
-    font-size:19px;
-    letter-spacing:.02em;
-    box-shadow:0 10px 24px -6px rgba(232,184,79,.55), inset 0 -4px 8px rgba(0,0,0,.2);
-    transition: transform .15s ease, box-shadow .15s ease, filter .3s ease;
+    font-size:clamp(13px, 3vw, 16px);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    transition: transform .15s ease, background .2s ease;
   }
-  #spinBtn:hover{transform:scale(1.035);}
-  #spinBtn:active{transform:scale(.97);}
+  #spinBtn:hover{transform:scale(1.04);}
+  #spinBtn:active{transform:scale(.96);}
   #spinBtn:disabled{
     cursor:default;
-    filter:grayscale(.35) brightness(.85);
+    background:var(--ink-dim);
     transform:none;
-  }
-
-  .pulse{
-    position:absolute;
-    inset:-6px;
-    border-radius:50%;
-    border:1px solid var(--gold);
-    opacity:0;
-  }
-  .stage.active .pulse{
-    animation: pulse 1.4s ease-out infinite;
-  }
-  @keyframes pulse{
-    0%{opacity:.5; transform:scale(1);}
-    100%{opacity:0; transform:scale(1.35);}
   }
 
   /* result card */
   .result{
     width:min(480px, 92vw);
-    background:var(--card);
-    border-radius:20px;
+    background:var(--cream-2);
+    border-radius:18px;
     padding:30px 28px 26px;
-    border:1px solid rgba(255,255,255,.06);
-    box-shadow:0 30px 60px -30px rgba(0,0,0,.7);
+    border:1px solid var(--line);
+    box-shadow:0 30px 60px -35px rgba(38,36,26,.4);
     opacity:0;
     transform:translateY(14px) scale(.98);
     transition:opacity .5s ease, transform .5s ease;
@@ -232,12 +228,12 @@
     margin-bottom:16px;
   }
   .result .tag.truth{
-    color:var(--truth);
-    background:var(--truth-glow);
+    color:var(--cream-2);
+    background:var(--olive);
   }
   .result .tag.dare{
-    color:var(--dare);
-    background:var(--dare-glow);
+    color:var(--cream-2);
+    background:var(--maroon);
   }
   .result .qnum{
     color:var(--ink-dim);
@@ -249,8 +245,9 @@
     font-family:'Fraunces', serif;
     font-size:clamp(20px, 3.4vw, 25px);
     line-height:1.35;
-    font-weight:600;
+    font-weight:500;
     margin:0;
+    color:var(--ink);
   }
 
   .hint{
@@ -267,12 +264,11 @@
     font-size:11px;
     letter-spacing:.14em;
     text-transform:uppercase;
-    color:#54506a;
+    color:var(--ink-dim);
   }
 
   @media (prefers-reduced-motion: reduce){
-    .ring-outer{transition:none;}
-    .pulse{animation:none;}
+    .wheel{transition:none;}
   }
 </style>
 </head>
@@ -288,12 +284,13 @@
   </div>
 
   <div class="stage" id="stage">
-    <div class="pulse"></div>
     <div class="pointer"></div>
-    <div class="ring-outer" id="ring">
-      <div class="hub">
-        <button id="spinBtn">SPIN</button>
-      </div>
+    <div class="wheel" id="wheel">
+      <div class="wheel-face" id="wheelFace"></div>
+      <div class="rim"></div>
+    </div>
+    <div class="hub">
+      <button id="spinBtn">SPIN</button>
     </div>
   </div>
 
@@ -362,8 +359,8 @@
     {n:50, type:'dare', q:"Switch phones for 5 minutes — we scroll through each other's home screens via screen-share (no opening private apps)."},
   ];
 
-  const ring = document.getElementById('ring');
-  const stage = document.getElementById('stage');
+  const wheel = document.getElementById('wheel');
+  const wheelFace = document.getElementById('wheelFace');
   const btn = document.getElementById('spinBtn');
   const result = document.getElementById('result');
   const tag = document.getElementById('tag');
@@ -371,8 +368,46 @@
   const question = document.getElementById('question');
   const hint = document.getElementById('hint');
 
+  const N = questions.length; // 50
+  const SLICE = 360 / N;      // 7.2deg per slice
+
+  // ---- build the wedge colours (conic-gradient) from the brand palette ----
+  const olive = ['#68702F', '#7C8A3D'];   // truth wedges, two alternating shades
+  const maroonSet = ['#7C2A3B', '#9A3C4E']; // dare wedges, two alternating shades
+  let stops = [];
+  for(let i = 0; i < N; i++){
+    const item = questions[i];
+    const palette = item.type === 'truth' ? olive : maroonSet;
+    const color = palette[i % 2];
+    const start = (i * SLICE).toFixed(3);
+    const end = ((i + 1) * SLICE).toFixed(3);
+    stops.push(`${color} ${start}deg ${end}deg`);
+  }
+  // base wedge colours, plus a thin cream divider line layered on top of each slice edge
+  wheelFace.style.backgroundImage =
+    `repeating-conic-gradient(from 0deg, rgba(236,230,216,.5) 0deg 0.35deg, transparent 0.35deg ${SLICE}deg), ` +
+    `conic-gradient(from 0deg, ${stops.join(', ')})`;
+
+  // ---- build the radial spoke labels ----
+  for(let i = 0; i < N; i++){
+    const item = questions[i];
+    const centerAngle = i * SLICE + SLICE / 2; // clockwise from top, matches conic-gradient
+    const cssRotate = centerAngle - 90; // spoke div's natural direction points right (east); shift to top-based system
+
+    const spoke = document.createElement('div');
+    spoke.className = 'spoke ' + item.type[0]; // 't' or 'd'
+    spoke.style.transform = `rotate(${cssRotate}deg)`;
+
+    const label = document.createElement('span');
+    const code = item.type === 'truth' ? 'T' : 'D';
+    label.textContent = `${code}${String(item.n).padStart(2,'0')}`;
+    spoke.appendChild(label);
+    wheelFace.appendChild(spoke);
+  }
+
+  // ---- spin logic ----
   let currentRotation = 0;
-  let remaining = shuffle([...Array(50).keys()]);
+  let remaining = shuffle([...Array(N).keys()]);
   let spinning = false;
 
   function shuffle(arr){
@@ -385,7 +420,7 @@
 
   function pickIndex(){
     if(remaining.length === 0){
-      remaining = shuffle([...Array(50).keys()]);
+      remaining = shuffle([...Array(N).keys()]);
     }
     return remaining.pop();
   }
@@ -394,18 +429,23 @@
     if(spinning) return;
     spinning = true;
     btn.disabled = true;
-    stage.classList.add('active');
     hint.textContent = 'Spinning…';
     result.classList.remove('show');
 
-    // truly random pick — decided AFTER the spin starts, unrelated to visual stop angle
+    // truly random pick — chosen independently, then the wheel is rotated to land on it
     const idx = pickIndex();
+    const centerAngle = idx * SLICE + SLICE / 2;
 
-    // random spin: 5-8 full rotations plus random offset, purely cosmetic
-    const extraTurns = 5 + Math.floor(Math.random() * 4);
-    const randomOffset = Math.random() * 360;
-    currentRotation += extraTurns * 360 + randomOffset;
-    ring.style.transform = `rotate(${currentRotation}deg)`;
+    // rotation (mod 360) needed so this slice's centre sits under the top pointer
+    const targetMod = (360 - centerAngle + 360) % 360;
+
+    const extraTurns = 6 + Math.floor(Math.random() * 3); // 6-8 full spins
+    const base = Math.floor(currentRotation / 360) * 360;
+    let newRotation = base + extraTurns * 360 + targetMod;
+    if(newRotation <= currentRotation) newRotation += 360;
+
+    currentRotation = newRotation;
+    wheel.style.transform = `rotate(${currentRotation}deg)`;
 
     setTimeout(() => {
       const item = questions[idx];
@@ -414,11 +454,10 @@
       qnum.textContent = 'Round ' + item.n + ' of 50';
       question.textContent = item.q;
       result.classList.add('show');
-      hint.textContent = 'Tap the wheel to spin again.';
-      stage.classList.remove('active');
+      hint.textContent = 'Tap spin to go again.';
       btn.disabled = false;
       spinning = false;
-    }, 3300);
+    }, 3500);
   });
 </script>
 </body>

@@ -270,6 +270,39 @@
     color:var(--ink);
   }
 
+  .copy-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    margin-top:20px;
+    padding:9px 16px;
+    border-radius:99px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-dim);
+    font-family:'Instrument Sans', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .copy-btn svg{
+    width:14px;
+    height:14px;
+    flex:none;
+  }
+  .copy-btn:hover{
+    border-color:var(--ink-dim);
+    color:var(--ink);
+  }
+  .copy-btn.copied{
+    border-color:var(--olive);
+    color:var(--olive);
+    background:rgba(104,112,47,.08);
+  }
+
   .hint{
     margin-top:22px;
     font-size:13px;
@@ -319,6 +352,10 @@
     <div class="tag" id="tag">Truth</div>
     <div class="qnum" id="qnum">Round 1</div>
     <p id="question">Press spin to reveal your first question.</p>
+    <button class="copy-btn" id="copyBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+      <span id="copyLabel">Copy question</span>
+    </button>
   </div>
 
   <div class="hint" id="hint">Pick truth or dare to begin.</div>
@@ -389,6 +426,8 @@
   const qnum = document.getElementById('qnum');
   const question = document.getElementById('question');
   const hint = document.getElementById('hint');
+  const copyBtn = document.getElementById('copyBtn');
+  const copyLabel = document.getElementById('copyLabel');
 
   const N = questions.length; // 50
   const SLICE = 360 / N;      // 7.2deg per slice
@@ -501,6 +540,8 @@
       tag.className = 'tag ' + item.type;
       qnum.textContent = 'Round ' + item.n + ' of 50';
       question.textContent = item.q;
+      copyBtn.classList.remove('copied');
+      copyLabel.textContent = 'Copy question';
       result.classList.add('show');
       hint.textContent = 'Pick truth or dare to go again.';
       truthBtn.disabled = false;
@@ -508,6 +549,38 @@
       spinning = false;
     }, 3500);
   }
+
+  // ---- copy just the question text to the clipboard ----
+  let copyResetTimer = null;
+  function copyQuestion(){
+    const text = question.textContent;
+    const showCopied = () => {
+      copyBtn.classList.add('copied');
+      copyLabel.textContent = 'Copied!';
+      clearTimeout(copyResetTimer);
+      copyResetTimer = setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyLabel.textContent = 'Copy question';
+      }, 1800);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(showCopied).catch(() => fallbackCopy(text, showCopied));
+    } else {
+      fallbackCopy(text, showCopied);
+    }
+  }
+  function fallbackCopy(text, onDone){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    onDone();
+  }
+  copyBtn.addEventListener('click', copyQuestion);
 
   truthBtn.addEventListener('click', () => spinTo('truth'));
   dareBtn.addEventListener('click', () => spinTo('dare'));
